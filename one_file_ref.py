@@ -40,7 +40,7 @@ def _reshape_for_broadcast(freqs_cis: torch.Tensor, x: torch.Tensor) -> torch.Te
         freqs_cis.shape,
         (x.shape[1], x.shape[-1]),
     )
-    shape = [d if i == 1 or i == ndim - 1 else 1 for i, d in enumerate(x.shape)]
+    shape = [d if i in [1, ndim - 1] else 1 for i, d in enumerate(x.shape)]
     return freqs_cis.view(*shape)
 
 
@@ -204,8 +204,7 @@ class TransformerBlock(nn.Module):
         r = self.attention.forward(self.attention_norm(x), freqs_cis, positions, mask)
         h = x + r
         r = self.feed_forward.forward(self.ffn_norm(h))
-        out = h + r
-        return out
+        return h + r
 
 def precompute_freqs_cis(dim: int, end: int, theta: float = 10000.0) -> torch.Tensor:
     freqs = 1.0 / (theta ** (torch.arange(0, dim, 2)[: (dim // 2)].float() / dim))
@@ -338,8 +337,10 @@ def generate(prompts: List[str], model: Transformer, tokenizer: Tokenizer, max_t
     if max_tokens > 0:
         generated = torch.cat(generated, 1)
 
-        for i, x in enumerate(encoded_prompts):
-            res.append(tokenizer.decode(x[:min_prompt_len] + generated[i].tolist()))
+        res.extend(
+            tokenizer.decode(x[:min_prompt_len] + generated[i].tolist())
+            for i, x in enumerate(encoded_prompts)
+        )
     return res, all_logprobs
 
 

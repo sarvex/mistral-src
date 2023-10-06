@@ -53,11 +53,13 @@ def test_generation():
     toks = [" ".join(r.split(" ")[1:]) for r in toks] # Remove BOS
     generated, all_logprobs_new = generate(toks, model, tokenizer, max_tokens=0)
     assert generated == []
-    
+
     # Verify that logprobs are the same
     assert len(sequences) == len(all_logprobs_old) == len(all_logprobs_new)
     for lp_old, lp_new in zip(all_logprobs_old, all_logprobs_new):
-        assert all([abs(x - y) < 1e-5 for x, y in zip(lp_old, lp_new)]), f"\n{lp_old}\n{lp_new}"
+        assert all(
+            abs(x - y) < 1e-5 for x, y in zip(lp_old, lp_new)
+        ), f"\n{lp_old}\n{lp_new}"
 
     print("All tests passed.")
 
@@ -88,7 +90,9 @@ def test_chunks():
     assert len(generated) == 0
 
     for lp_old, lp_new in zip(all_logprobs_old, all_logprobs_new):
-        assert all([abs(x - y) < 1e-5 for x, y in zip(lp_old, lp_new)]), f"\n{lp_old}\n{lp_new}"
+        assert all(
+            abs(x - y) < 1e-5 for x, y in zip(lp_old, lp_new)
+        ), f"\n{lp_old}\n{lp_new}"
     
 
 if __name__ == "__main__":
